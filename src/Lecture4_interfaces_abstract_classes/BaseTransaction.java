@@ -4,7 +4,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Calendar;
 
-public abstract class BaseTransaction implements TransactionInterface {
+/**
+ * Concrete class that implements the TransactionInterface.
+ * This class provides a base implementation for all transaction types.
+ * Subclasses (DepositTransaction, WithdrawalTransaction) override the apply() method
+ * to provide specific transaction behavior (polymorphism via late binding).
+ */
+public class BaseTransaction implements TransactionInterface {
     private final int amount;
     private final Calendar date;
     private final String transactionID;
@@ -26,7 +32,7 @@ public abstract class BaseTransaction implements TransactionInterface {
 
     /**
      * getAmount()
-     * @return integer
+     * @return double - the transaction amount
      */
     public double getAmount() {
         return amount; // Because we are dealing with Value types we need not worry about what we return
@@ -45,7 +51,29 @@ public abstract class BaseTransaction implements TransactionInterface {
     public String getTransactionID(){
         return  transactionID;
     }
-    // Method to print a transaction receipt or details
-    public abstract void printTransactionDetails();
-    public abstract void apply(BankAccount ba);
+
+    /**
+     * printTransactionDetails()
+     * Prints out the details of this transaction including the amount, date, and transaction ID.
+     */
+    public void printTransactionDetails(){
+        System.out.println("Transaction Details:");
+        System.out.println("Transaction ID: \t" + transactionID);
+        System.out.println("Transaction Amount: \t" + amount);
+        System.out.println("Transaction Date: \t" + date.getTime());
+    }
+
+    /**
+     * apply(BankAccount ba)
+     * Base implementation of apply - simply prints the transaction details.
+     * This differs from DepositTransaction (which adds to balance) and
+     * WithdrawalTransaction (which subtracts from balance).
+     * Subclasses override this method to provide specific behavior (late binding).
+     * @param ba the BankAccount object to apply the transaction on
+     */
+    public void apply(BankAccount ba) throws InsufficientFundsException {
+        System.out.println("Base Transaction Applied:");
+        printTransactionDetails();
+        System.out.println("Current Balance After Base Apply: \t" + ba.getBalance());
+    }
 }

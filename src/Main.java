@@ -1,4 +1,5 @@
 import Lecture1_adt.*; // Import all classes from Lecture1_adt package to be used in this client code
+import Lecture4_interfaces_abstract_classes.*;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -8,7 +9,7 @@ import java.util.List;
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 /*
-* Client Code for accessing the Lecture1_adt.TransactionInterface.java module
+ * Client Code for accessing the Lecture1_adt.TransactionInterface.java module
  */
 public class Main {
 
@@ -144,6 +145,144 @@ public class Main {
     }
 
 
+    /*
+     * ====================================================================
+     * Assignment 1 - Question 4: Client Code to test Assignment classes
+     * ====================================================================
+     */
+
+    /**
+     * Test the DepositTransaction class
+     * Creates a DepositTransaction, applies it to a BankAccount, and prints details.
+     */
+    public static void testDepositTransaction() {
+        System.out.println("=============================================");
+        System.out.println("   Testing DepositTransaction");
+        System.out.println("=============================================");
+
+        // Create a BankAccount with initial balance of 1000
+        BankAccount account = new BankAccount(1000);
+        System.out.println("Initial Balance: \t" + account.getBalance());
+
+        // Create a DepositTransaction of 500
+        Calendar date = new GregorianCalendar();
+        DepositTrasaction deposit = new DepositTrasaction(500, date);
+
+        // Print the transaction details
+        deposit.printTransactionDetails();
+
+        // Apply the deposit to the bank account
+        try {
+            deposit.apply(account);
+        } catch (InsufficientFundsException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        System.out.println("Balance After Deposit: \t" + account.getBalance());
+
+        System.out.println("\n--- Testing Polymorphism: Type casting DepositTransaction to BaseTransaction ---");
+
+        // Type casting: Assign the subtype object to a base type reference (early vs late binding)
+        BaseTransaction baseRef = deposit; // Upcasting - subtype to base type
+        System.out.println("\nCalling apply() through BaseTransaction reference (late binding):");
+        try {
+            baseRef.apply(new BankAccount(2000)); // Late binding: calls DepositTrasaction.apply()
+        } catch (InsufficientFundsException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test the WithdrawalTransaction class
+     * Tests normal withdrawal, insufficient funds exception, partial withdrawal, and reversal.
+     */
+    public static void testWithdrawalTransaction() {
+        System.out.println("\n\n=============================================");
+        System.out.println("   Testing WithdrawalTransaction");
+        System.out.println("=============================================");
+
+        // Create a BankAccount with initial balance of 1000
+        BankAccount account = new BankAccount(1000);
+        System.out.println("Initial Balance: \t" + account.getBalance());
+
+        // --- Test 1: Normal Withdrawal ---
+        System.out.println("\n--- Test 1: Normal Withdrawal of 300 ---");
+        Calendar date1 = new GregorianCalendar();
+        WithdrawalTransaction withdrawal1 = new WithdrawalTransaction(300, date1);
+        withdrawal1.printTransactionDetails();
+        try {
+            withdrawal1.apply(account);
+        } catch (InsufficientFundsException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        System.out.println("Balance After Withdrawal: \t" + account.getBalance());
+
+        // --- Test 2: Reversal of the Withdrawal ---
+        System.out.println("\n--- Test 2: Reversing the Withdrawal of 300 ---");
+        boolean reversed = withdrawal1.reverse();
+        System.out.println("Reversal Successful: \t" + reversed);
+        System.out.println("Balance After Reversal: \t" + account.getBalance());
+
+        // --- Test 3: Withdrawal with Insufficient Funds (throws exception) ---
+        System.out.println("\n--- Test 3: Withdrawal of 5000 with Insufficient Funds (throws) ---");
+        Calendar date2 = new GregorianCalendar();
+        WithdrawalTransaction withdrawal2 = new WithdrawalTransaction(5000, date2);
+        try {
+            withdrawal2.apply(account);
+        } catch (InsufficientFundsException e) {
+            System.out.println("Exception Caught: " + e.getMessage());
+        }
+        System.out.println("Balance After Failed Withdrawal: \t" + account.getBalance());
+
+        // --- Test 4: Partial Withdrawal using overloaded apply() with try-catch-finally ---
+        System.out.println("\n--- Test 4: Partial Withdrawal of 5000 using overloaded apply() ---");
+        Calendar date3 = new GregorianCalendar();
+        WithdrawalTransaction withdrawal3 = new WithdrawalTransaction(5000, date3);
+        withdrawal3.apply(account, true);
+        System.out.println("Amount Not Withdrawn: \t" + withdrawal3.getAmountNotWithdrawn());
+
+        // --- Test 5: Polymorphism - Type casting to BaseTransaction ---
+        System.out.println("\n--- Test 5: Polymorphism - Type Casting WithdrawalTransaction to BaseTransaction ---");
+        BankAccount account2 = new BankAccount(2000);
+        Calendar date4 = new GregorianCalendar();
+        WithdrawalTransaction withdrawal4 = new WithdrawalTransaction(500, date4);
+
+        // Upcasting: subtype object to base type reference
+        BaseTransaction baseRef = withdrawal4;
+        System.out.println("Calling apply() through BaseTransaction reference (late binding):");
+        try {
+            baseRef.apply(account2); // Late binding: calls WithdrawalTransaction.apply()
+        } catch (InsufficientFundsException e) {
+            System.out.println("Exception Caught: " + e.getMessage());
+        }
+        System.out.println("Balance After Polymorphic Withdrawal: \t" + account2.getBalance());
+    }
+
+    /**
+     * Test the BaseTransaction class directly
+     * Shows how the BaseTransaction.apply() differs from subclass implementations.
+     */
+    public static void testBaseTransaction() {
+        System.out.println("\n\n=============================================");
+        System.out.println("   Testing BaseTransaction (directly)");
+        System.out.println("=============================================");
+
+        BankAccount account = new BankAccount(1000);
+        Calendar date = new GregorianCalendar();
+        BaseTransaction baseTransaction = new BaseTransaction(100, date);
+
+        System.out.println("Initial Balance: \t" + account.getBalance());
+        baseTransaction.printTransactionDetails();
+
+        try {
+            baseTransaction.apply(account);
+        } catch (InsufficientFundsException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        System.out.println("Balance After Base Apply: \t" + account.getBalance());
+        // Note: BaseTransaction.apply() does NOT change the balance - it only prints details
+    }
+
+
     public static void main(String[] args) {
         // This is the client code
         // Uncomment the following lines to test the class which you would like to test
@@ -152,5 +291,12 @@ public class Main {
         // testTransaction2()
         // testTransaction3()
         // testTransaction4()
+
+        /*
+         * Assignment 1 - Question 4: Test the Assignment classes
+         */
+        testBaseTransaction();
+        testDepositTransaction();
+        testWithdrawalTransaction();
     }
 }
